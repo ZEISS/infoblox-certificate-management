@@ -1,20 +1,47 @@
 # Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+Contains resources to manage certificate challanges with InfoBlox backend via ESB.
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+# Installation of cert-manager custom webhook
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+1. Add Helm Repository
+```
+helm repo add certmanager-webhook-infoblox https://zeiss.github.io/infoblox-certificate-management/certmanager/charts
+```
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+2. Install Helm-Chart
+```
+helm install infoblox-solver certmanager-webhook-infoblox/infoblox-solver -n cert-manager
+```
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+3. Add ClusterIssue to cert-manager
+````
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-infoblox
+spec:
+  acme:
+    # The ACME server URL
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    # Email address used for ACME registration
+    email: email@zeiss.com
+    # Name of a secret used to store the ACME account private key
+    privateKeySecretRef:
+      name: letsencrypt-infoblox-secret
+    # Enable the dns01 challenge provider
+    solvers:
+      - dns01:
+          webhook:
+            groupName: com.zeiss.infoblox <-- value must not be changed
+            solverName: infoblox-solver
+            config:
+              esbApiKey:
+                key: esbApiKey
+                name: infoblox-secret
+              infobloxUser:
+                key: infobloxUser
+                name: infoblox-secret
+              infobloxPassword:
+                key: infobloxPassword
+                name: infoblox-secret
+```
