@@ -1,0 +1,13 @@
+apiVersion: v1
+entries:
+  infoblox-solver:
+  - apiVersion: v1
+    appVersion: 1.0.0
+    created: "2025-09-23T15:27:28.764191+02:00"
+    description: Custom Webhook for certmanager to utilize Infoblox backend (via ESB)
+    digest: b188a802f944667a390ac75552ba623ea21ea9b64bbfe262c3fe82a188c2bed6
+    name: infoblox-solver
+    urls:
+    - infoblox-solver-1.0.0.tgz
+    version: 1.0.0
+generated: "2025-09-23T15:27:28.762522+02:00"
