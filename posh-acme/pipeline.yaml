@@ -6,7 +6,7 @@ pool:
 parameters:
   - name: dnsName
     type: string
-    default: test.cloud.zeiss.com
+    default: <dns-name>
 
 variables:
 - group: <var-group>

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "params $DNS_API_URL $ESB_SUBSCRIPTION_KEY $BASIC_AUTH_USER $BASIC_AUTH_PASS $DNS_NAME"
+echo "creating txt record for $DNS_NAME"
 
 certbot certonly \
   --manual \

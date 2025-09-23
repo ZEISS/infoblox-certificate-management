@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param (
     #[Parameter(Mandatory=$true)]
-    [string]$dnsName = "test.cloud.zeiss.com",
+    [string]$dnsName = "<dns-name>",
     #[Parameter(Mandatory=$true)]
     [string]$esbSubscriptionKey = "",
     #[Parameter(Mandatory=$true)]
