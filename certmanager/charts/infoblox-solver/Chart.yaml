@@ -1,0 +1,5 @@
+apiVersion: v2
+name: infoblox-solver
+description: Custom Webhook for certmanager to utilize Infoblox backend (via ESB)
+version: 1.0.0
+appVersion: "1.16.0"

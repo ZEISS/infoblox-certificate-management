@@ -1,0 +1,21 @@
+trigger: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+- group: <var-group>
+
+steps:
+  - bash: |
+      sudo apt-get install certbot
+      
+      export DNS_API_URL="https://esb.zeiss.com/public/api/infoblox/record/txt"
+      export ESB_SUBSCRIPTION_KEY="$(esbSubscriptionKey)"
+      export BASIC_AUTH_USER="$(infobloxUser)"
+      export BASIC_AUTH_PASS="$(infobloxPassword)"
+      export DNS_NAME="<name>.zeiss.com"
+      export CONTACT="user@zeiss.com"
+
+      ./certbot/challange.sh
+    displayName: cert challange

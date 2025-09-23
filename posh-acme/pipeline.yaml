@@ -1,0 +1,20 @@
+trigger: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+parameters:
+  - name: dnsName
+    type: string
+    default: test.cloud.zeiss.com
+
+variables:
+- group: <var-group>
+
+steps:
+  - pwsh: ./posh-acme/challange.ps1 `
+          -dnsName ${{ parameters.dnsName }} `
+          -esbSubscriptionKey $(esbSubscriptionKey) `
+          -infobloxUser $(infobloxUser) `
+          -infobloxPassword $(infobloxPassword)
+    displayName: cert challange

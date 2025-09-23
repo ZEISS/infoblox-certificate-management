@@ -1,0 +1,33 @@
+# Default values for infoblox-solver.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+groupName: infoblox-solver
+
+certManager:
+  namespace: cert-manager
+  serviceAccountName: cert-manager
+
+# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  repository: ghcr.io/zeiss/infoblox-certificate-management/infoblox-solver
+  # This sets the pull policy for images.
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "1.0.0"
+
+
+nameOverride: ""
+fullnameOverride: ""
+
+# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+service:
+  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  type: ClusterIP
+  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+  port: 443
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
