@@ -1,0 +1,76 @@
+---
+# Create a selfsigned Issuer, in order to create a root CA certificate for
+# signing webhook serving certificates
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ include "infoblox-solver.selfSignedIssuer" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    app: {{ include "infoblox-solver.name" . }}
+    chart: {{ include "infoblox-solver.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  selfSigned: {}
+
+---
+
+# Generate a CA Certificate used to sign certificates for the webhook
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "infoblox-solver.rootCACertificate" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    app: {{ include "infoblox-solver.name" . }}
+    chart: {{ include "infoblox-solver.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  secretName: {{ include "infoblox-solver.rootCACertificate" . }}
+  duration: 43800h # 5y
+  issuerRef:
+    name: {{ include "infoblox-solver.selfSignedIssuer" . }}
+  commonName: "ca.infoblox-solver.cert-manager"
+  isCA: true
+
+---
+
+# Create an Issuer that uses the above generated CA certificate to issue certs
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ include "infoblox-solver.rootCAIssuer" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    app: {{ include "infoblox-solver.name" . }}
+    chart: {{ include "infoblox-solver.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  ca:
+    secretName: {{ include "infoblox-solver.rootCACertificate" . }}
+
+---
+
+# Finally, generate a serving certificate for the webhook to use
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "infoblox-solver.servingCertificate" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    app: {{ include "infoblox-solver.name" . }}
+    chart: {{ include "infoblox-solver.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  secretName: {{ include "infoblox-solver.servingCertificate" . }}
+  duration: 8760h # 1y
+  issuerRef:
+    name: {{ include "infoblox-solver.rootCAIssuer" . }}
+  dnsNames:
+  - {{ include "infoblox-solver.fullname" . }}
+  - {{ include "infoblox-solver.fullname" . }}.{{ .Release.Namespace }}
+  - {{ include "infoblox-solver.fullname" . }}.{{ .Release.Namespace }}.svc

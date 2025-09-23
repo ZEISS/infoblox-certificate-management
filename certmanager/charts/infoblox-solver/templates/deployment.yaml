@@ -2,73 +2,68 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "infoblox-solver.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
   labels:
-    {{- include "infoblox-solver.labels" . | nindent 4 }}
+    app: {{ include "infoblox-solver.name" . }}
+    chart: {{ include "infoblox-solver.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "infoblox-solver.selectorLabels" . | nindent 6 }}
+      app: {{ include "infoblox-solver.name" . }}
+      release: {{ .Release.Name }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       labels:
-        {{- include "infoblox-solver.labels" . | nindent 8 }}
-        {{- with .Values.podLabels }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
+        app: {{ include "infoblox-solver.name" . }}
+        release: {{ .Release.Name }}
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.podSecurityContext }}
-      securityContext:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      serviceAccountName: {{ include "infoblox-solver.fullname" . }}
       containers:
         - name: {{ .Chart.Name }}
-          {{- with .Values.securityContext }}
-          securityContext:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --tls-cert-file=/tls/tls.crt
+            - --tls-private-key-file=/tls/tls.key
+          env:
+            - name: GROUP_NAME
+              value: {{ .Values.groupName | quote }}
           ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
+            - name: https
+              containerPort: 443
               protocol: TCP
-          {{- with .Values.livenessProbe }}
           livenessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.readinessProbe }}
+            httpGet:
+              scheme: HTTPS
+              path: /healthz
+              port: https
           readinessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.resources }}
-          resources:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.volumeMounts }}
+            httpGet:
+              scheme: HTTPS
+              path: /healthz
+              port: https
           volumeMounts:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-      {{- with .Values.volumes }}
+            - name: certs
+              mountPath: /tls
+              readOnly: true
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
       volumes:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.nodeSelector }}
+        - name: certs
+          secret:
+            secretName: {{ include "infoblox-solver.servingCertificate" . }}
+    {{- with .Values.nodeSelector }}
       nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
       affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
       tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+{{ toYaml . | indent 8 }}
+    {{- end }}
