@@ -33,7 +33,7 @@ spec:
       - dns01:
           webhook:
             groupName: com.zeiss.infoblox <-- value must not be changed
-            solverName: infoblox-solver
+            solverName: infoblox-solver <-- value must not be changed
             config:
               esbApiKey:
                 key: esbApiKey
