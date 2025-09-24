@@ -91,11 +91,12 @@ subjects:
     name: {{ .Values.certManager.serviceAccountName }}
     namespace: {{ .Values.certManager.namespace }}
 ---
+# Grant access to read secrets
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {{ include "infoblox-solver.fullname" . }}:secret-reader
-  namespace: {{ .Release.Namespace | quote }}
+  namespace: {{ .Values.certManager.namespace }}
   labels:
     app: {{ include "infoblox-solver.name" . }}
     chart: {{ include "infoblox-solver.chart" . }}
@@ -113,7 +114,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: {{ include "infoblox-solver.fullname" . }}:secret-reader
-  namespace: {{ .Release.Namespace | quote }}
+  namespace: {{ .Values.certManager.namespace }}
   labels:
     app: {{ include "infoblox-solver.name" . }}
     chart: {{ include "infoblox-solver.chart" . }}
