@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -72,6 +73,8 @@ func (c *InfoBloxSolver) Present(ch *v1alpha1.ChallengeRequest) error {
 		panic(err)
 	}
 
+	log.Printf("Config Loaded")
+
 	body := ReqeustBody{
 		Name: ch.ResolvedFQDN,
 		Text: ch.Key,
@@ -83,6 +86,8 @@ func (c *InfoBloxSolver) Present(ch *v1alpha1.ChallengeRequest) error {
 	if err != nil {
 		return fmt.Errorf("error formating json body")
 	}
+
+	log.Printf("body: %v", jsonBody)
 
 	req, err := http.NewRequest("POST", "https://esb.zeiss.com/public/api/infoblox/record/txt", bytes.NewBuffer(jsonBody))
 	if err != nil {
@@ -98,6 +103,8 @@ func (c *InfoBloxSolver) Present(ch *v1alpha1.ChallengeRequest) error {
 		panic(err)
 	}
 	defer resp.Body.Close()
+
+	log.Printf("status code of propagation: %v", resp.StatusCode)
 
 	return nil
 }

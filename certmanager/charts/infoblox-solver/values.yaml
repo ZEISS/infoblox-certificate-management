@@ -16,7 +16,7 @@ certManager:
 
 image:
   repository: ghcr.io/zeiss/infoblox-certificate-management/infoblox-solver
-  tag: 1.0.0
+  tag: 1.0.1
   pullPolicy: IfNotPresent
 
 nameOverride: ""
