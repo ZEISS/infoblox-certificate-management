@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -53,46 +54,30 @@ func (c *InfoBloxSolver) Name() string {
 	return "infoblox-solver"
 }
 
-type ReqeustBody struct {
-	Name string `json:"name"`
-	Text string `json:"text"`
-	View string `json:"view"`
-	Ttl  int    `json:"ttl"`
-}
-
-type TxtRecord struct {
-	Ref  string `json:"_ref"`
-	Name string `json:"name"`
-	Text string `json:"text"`
-	View string `json:"view"`
-}
-
 func (c *InfoBloxSolver) Present(ch *v1alpha1.ChallengeRequest) error {
 	config, err := c.getConfig(ch)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("error loading config")
 	}
 
-	log.Printf("Config Loaded")
-
-	body := ReqeustBody{
-		Name: ch.ResolvedFQDN,
-		Text: ch.Key,
-		View: "Internet",
-		Ttl:  3600,
+	data := map[string]any{
+		"name": strings.TrimSuffix(ch.ResolvedFQDN, "."),
+		"text": ch.Key,
+		"view": "Internet",
+		"ttl":  3600,
 	}
 
-	jsonBody, err := json.Marshal(body)
+	jsonBody, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("error formating json body")
 	}
-
-	log.Printf("body: %v", jsonBody)
 
 	req, err := http.NewRequest("POST", "https://esb.zeiss.com/public/api/infoblox/record/txt", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		panic(err)
 	}
+	log.Printf("adding record %v with value %v", strings.TrimSuffix(ch.ResolvedFQDN, "."), ch.Key)
+
 	req.SetBasicAuth(config.InfobloxUser, config.InfobloxPassword)
 	req.Header.Add("EsbApi-Subscription-Key", config.EsbApiKey)
 	req.Header.Add("Content-type", "application/json")
@@ -104,7 +89,7 @@ func (c *InfoBloxSolver) Present(ch *v1alpha1.ChallengeRequest) error {
 	}
 	defer resp.Body.Close()
 
-	log.Printf("status code of propagation: %v", resp.StatusCode)
+	log.Printf("status code of propagation request %v of zone %v", resp.StatusCode, strings.TrimSuffix(ch.ResolvedZone, "."))
 
 	return nil
 }
@@ -112,14 +97,17 @@ func (c *InfoBloxSolver) Present(ch *v1alpha1.ChallengeRequest) error {
 func (c *InfoBloxSolver) CleanUp(ch *v1alpha1.ChallengeRequest) error {
 	config, err := c.getConfig(ch)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("error loading config")
 	}
-	recordName := strings.Split(ch.ResolvedFQDN, ".")[0]
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://esb.zeiss.com/public/api/infoblox/record/txt?zone=%s&name=%s&view=Internet", ch.ResolvedZone, recordName), http.NoBody)
+	recordName := strings.Split(ch.ResolvedFQDN, ".")[0] + "." + strings.Split(ch.ResolvedFQDN, ".")[1]
+	requestUrl := fmt.Sprintf("https://esb.zeiss.com/public/api/infoblox/record/txt?zone=%s&name=%s&view=Internet", strings.TrimSuffix(ch.ResolvedZone, "."), recordName)
+
+	req, err := http.NewRequest("GET", requestUrl, http.NoBody)
 	if err != nil {
 		return fmt.Errorf("error creating GET request for txt record: %v", err)
 	}
+
 	req.SetBasicAuth(config.InfobloxUser, config.InfobloxPassword)
 	req.Header.Add("EsbApi-Subscription-Key", config.EsbApiKey)
 	req.Header.Add("Content-type", "application/json")
@@ -131,17 +119,23 @@ func (c *InfoBloxSolver) CleanUp(ch *v1alpha1.ChallengeRequest) error {
 	}
 	defer resp.Body.Close()
 
-	var records []TxtRecord
-	err = json.NewDecoder(resp.Body).Decode(&records)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}
 
-	for _, r := range records {
-		req, err = http.NewRequest("DELETE", fmt.Sprintf("https://esb.zeiss.com/public/api/infoblox/record?reference=%s", r.Ref), http.NoBody)
+	var res []map[string]interface{}
+	json.Unmarshal([]byte(string(body)), &res)
+
+	// we delete all records with the same name (e.g. _acme-challenge.test.zeiss.com) in case of duplications
+	for _, r := range res {
+		req, err = http.NewRequest("DELETE", fmt.Sprintf("https://esb.zeiss.com/public/api/infoblox/record?reference=%s", r["_ref"].(string)), http.NoBody)
 		if err != nil {
 			return fmt.Errorf("error creating DELETE request: %v", err)
 		}
+
+		log.Printf("deleting record with reference %v", r["_ref"].(string))
+
 		req.SetBasicAuth(config.InfobloxUser, config.InfobloxPassword)
 		req.Header.Add("EsbApi-Subscription-Key", config.EsbApiKey)
 		req.Header.Add("Content-type", "application/json")
@@ -151,6 +145,8 @@ func (c *InfoBloxSolver) CleanUp(ch *v1alpha1.ChallengeRequest) error {
 			return fmt.Errorf("error deleting textrecord: %v", err)
 		}
 		defer resp.Body.Close()
+
+		log.Printf("status code of deletion request %v of zone %v", resp.StatusCode, strings.TrimSuffix(ch.ResolvedZone, "."))
 	}
 
 	return nil

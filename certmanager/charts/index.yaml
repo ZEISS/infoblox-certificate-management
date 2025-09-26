@@ -2,8 +2,17 @@ apiVersion: v1
 entries:
   infoblox-solver:
   - apiVersion: v1
+    appVersion: 1.1.0
+    created: "2025-09-26T06:54:32.850522+02:00"
+    description: Custom Webhook for certmanager to utilize Infoblox backend (via ESB)
+    digest: 03b4ac6146844bb6f8351c7e0ebd626b202c5109f5227928589181072df0b15f
+    name: infoblox-solver
+    urls:
+    - https://zeiss.github.io/infoblox-certificate-management/certmanager/charts/infoblox-solver-1.3.0.tgz
+    version: 1.3.0
+  - apiVersion: v1
     appVersion: 1.0.1
-    created: "2025-09-24T11:45:50.489439+02:00"
+    created: "2025-09-26T06:54:32.849903+02:00"
     description: Custom Webhook for certmanager to utilize Infoblox backend (via ESB)
     digest: 52f020c0cfc9974c2353346d128301b2a34ebfa67ca525be5da24fce8ca433d2
     name: infoblox-solver
@@ -12,7 +21,7 @@ entries:
     version: 1.2.0
   - apiVersion: v1
     appVersion: 1.0.0
-    created: "2025-09-24T11:45:50.488744+02:00"
+    created: "2025-09-26T06:54:32.847937+02:00"
     description: Custom Webhook for certmanager to utilize Infoblox backend (via ESB)
     digest: 6eded82c7dbfc8aed97823631cfc41e4ea170937613112a65f0484b58e83d985
     name: infoblox-solver
@@ -21,11 +30,11 @@ entries:
     version: 1.1.0
   - apiVersion: v1
     appVersion: 1.0.0
-    created: "2025-09-24T11:45:50.475923+02:00"
+    created: "2025-09-26T06:54:32.845103+02:00"
     description: Custom Webhook for certmanager to utilize Infoblox backend (via ESB)
     digest: b188a802f944667a390ac75552ba623ea21ea9b64bbfe262c3fe82a188c2bed6
     name: infoblox-solver
     urls:
     - https://zeiss.github.io/infoblox-certificate-management/certmanager/charts/infoblox-solver-1.0.0.tgz
     version: 1.0.0
-generated: "2025-09-24T11:45:50.467077+02:00"
+generated: "2025-09-26T06:54:32.842423+02:00"
